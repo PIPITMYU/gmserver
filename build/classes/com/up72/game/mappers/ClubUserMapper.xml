@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.up72.game.dao.ClubUserMapper">
+
+	<resultMap id="BaseResultMap" type="com.up72.game.dto.resp.ClubUser" >
+	  <id column="ID" property="id" jdbcType="INTEGER" />
+	  <result column="CLUB_ID" property="clubId" jdbcType="INTEGER" />
+	  <result column="USER_ID" property="userId" jdbcType="INTEGER" />
+  	  <result column="STATUS" property="status" jdbcType="INTEGER" />
+	  <result column="CREATE_TIME" property="createTime" jdbcType="BIGINT" />
+	  <!-- 不属于表字段的 -->
+	 <!--  <result column="CLUB_NAME" property="clubName" jdbcType="VARCHAR" />
+	  <result column="USER_NAME" property="createName" jdbcType="INTEGER" />
+	  <result column="SUM_PERSON" property="sumPerson" jdbcType="INTEGER" />
+	  <result column="PERSON_QUOTA" property="personQuota" jdbcType="INTEGER" /> -->
+	  
+	</resultMap>
+	  
+	<insert id="insert" parameterType="com.up72.game.dto.resp.ClubUser">
+        INSERT INTO CLUB_USER(
+            CLUB_ID,USER_ID,STATUS,CREATE_TIME  
+        )
+        VALUES (
+           #{clubId},#{userId},#{status},#{createTime} 
+        )
+    </insert>
+    
+    <select id="countByUserId" resultType="java.lang.Integer" parameterType="java.lang.Long">
+    
+	    SELECT count(ID) from CLUB_USER where USER_ID = #{userId} and (STATUS = 1 or STATUS = 2)
+	</select>
+	
+	<select id="countByClubId" resultType="java.lang.Integer" parameterType="map">
+    
+	    SELECT count(ID) from CLUB_USER where CLUB_ID = #{clubId} and STATUS = #{status}
+	</select>
+    
+	<select id="selectClubByUserId" resultMap="BaseResultMap" parameterType="map">
+	    SELECT * from CLUB_USER
+	    WHERE USER_ID = #{userId}  and (STATUS = 1 or STATUS = 2)
+	</select>
+	<select id="selectUserByUserIdAndClubId" resultMap="BaseResultMap" parameterType="map">
+	    SELECT 
+	    	*
+	    from CLUB_USER  
+	    WHERE  CLUB_ID =#{clubId} and USER_ID = #{userId}
+	</select>
+	
+	<update id="updateById" parameterType="com.up72.game.dto.resp.ClubUser" >
+	    update CLUB_USER
+	    <set >
+	      <if test="clubId != null" >
+	        CLUB_ID = #{clubId,jdbcType=INTEGER},
+	      </if>
+	      <if test="userId != null" >
+	        USER_ID = #{userId,jdbcType=INTEGER},
+	      </if>  
+	      <if test="status != null" >
+	        STATUS = #{status,jdbcType=INTEGER},
+	      </if>   
+	      <if test="createTime != null" >
+	        CREATE_TIME = #{createTime,jdbcType=BIGINT},
+	      </if> 
+	    </set>
+	    where ID = #{id,jdbcType=INTEGER}
+  </update>
+	<select id="allUsers" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+		select count(id) from CLUB_USER where CLUB_ID=#{clubId} and (STATUS = 1 or STATUS = 2)
+	</select>
+	<select id="selectUserState" parameterType="map" resultType="java.lang.Integer">
+		select STATUS from CLUB_USER where CLUB_ID = #{clubId} and USER_ID = #{userId}
+	</select>
+			<!-- 今日活跃人数 -->
+	<select id="todayPerson" parameterType="map" resultType="java.lang.Integer">
+		SELECT  DISTINCT cu.USER_ID  
+
+		FROM  CLUB_USER cu, CLUB_GAME_PLAY_RECORD cpr where
+
+		(cu.USER_ID = cpr.NORTH_USER_ID or cu.USER_ID = cpr.EAST_USER_ID 
+
+		or cu.USER_ID = cpr.SOUTH_USER_ID  or cu.USER_ID = cpr.WEST_USER_ID) 
+						
+		and cpr.CLUB_ID = #{clubId} and START_TIME&gt;=#{morning} and END_TIME&lt;#{night}
+ 
+	</select>
+	<!-- 今日局数 -->
+	<select id="todayGames" parameterType="map" resultType="java.lang.Integer">
+		SELECT COUNT(ROOM_ID) FROM CLUB_GAME_PLAY_RECORD WHERE 
+		CLUB_ID=#{clubId} and START_TIME&gt;=#{morning} and END_TIME&lt;#{night}
+	</select>
+	
+</mapper>

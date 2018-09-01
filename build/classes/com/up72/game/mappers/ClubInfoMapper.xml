@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.up72.game.dao.ClubInfoMapper">
+
+	<resultMap id="BaseResultMap" type="com.up72.game.dto.resp.ClubInfo" >
+	  <id column="ID" property="id" jdbcType="INTEGER" />
+	  <result column="CLUB_ID" property="clubId" jdbcType="INTEGER" />
+	  <result column="CLUB_NAME" property="clubName" jdbcType="VARCHAR" />
+	  <result column="CREATE_ID" property="createId" jdbcType="INTEGER" />
+	  <result column="ROOM_CARD_NUM" property="roomCardNum" jdbcType="INTEGER" />
+	  <result column="PERSON_QUOTA" property="personQuota" jdbcType="INTEGER" />
+	  <result column="ROOM_CARD_QUOTA" property="roomCardQuota" jdbcType="INTEGER" />
+	  <result column="ROOM_CARD_NOTICE" property="roomCardNotice" jdbcType="INTEGER" />
+	  <result column="CREATE_TIME" property="createTime" jdbcType="BIGINT" />
+	  <result column="FREE_START" property="freeStart" jdbcType="BIGINT" />
+	  <result column="FREE_END" property="freeEnd" jdbcType="BIGINT" />
+	  <!-- 不属于表字段的 -->
+	  <!-- <result column="USER_NAME" property="createName" jdbcType="VARCHAR" /> -->
+	  
+	</resultMap>
+	  
+	<!-- <select id="selectByClubId" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+	    SELECT 
+	    	ci.CLUB_ID,gu.USER_NAME,ci.CLUB_NAME,ci.CREATE_TIME,ci.PERSON_QUOTA,ci.ROOM_CARD_NUM 
+	    from CLUB_INFO ci,GAME_USER gu 
+	    WHERE ci.CREATE_ID = gu.USER_ID AND ci.CLUB_ID = #{clubId}
+	</select> 
+	
+	<select id="selectAll" resultMap="BaseResultMap">
+	    SELECT 
+	    	ci.CLUB_ID,gu.USER_NAME,ci.CLUB_NAME,ci.CREATE_TIME,ci.PERSON_QUOTA,ci.ROOM_CARD_NUM 
+	    from CLUB_INFO ci,GAME_USER gu   WHERE ci.CREATE_ID = gu.USER_ID
+	</select>-->
+	<select id="selectByClubId" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+	    SELECT * FROM CLUB_INFO WHERE CLUB_ID = #{clubId}
+	</select> 
+	<select id="selectAll" resultMap="BaseResultMap">
+	    SELECT * from CLUB_INFO
+	</select>
+	<update id="updateByClubId" parameterType="com.up72.game.dto.resp.ClubInfo" >
+	    update CLUB_INFO
+	    <set >
+	      <if test="clubName != null" >
+	        CLUB_NAME = #{clubName,jdbcType=VARCHAR},
+	      </if>
+	      <if test="createId != null" >
+	        CREATE_ID = #{createId,jdbcType=INTEGER},
+	      </if>  
+	      <if test="roomCardNum != null" >
+	        ROOM_CARD_NUM = #{roomCardNum,jdbcType=INTEGER},
+	      </if>  
+	      <if test="personQuota != null" >
+	        PERSON_QUOTA = #{personQuota,jdbcType=INTEGER},
+	      </if>
+	      <if test="roomCardQuota != null" >
+	        ROOM_CARD_QUOTA = #{roomCardQuota,jdbcType=INTEGER},
+	      </if>   
+	      <if test="roomCardNotice != null" >
+	        ROOM_CARD_NOTICE = #{roomCardNotice,jdbcType=INTEGER},
+	      </if> 
+	      <if test="createTime != null" >
+	        CREATE_TIME = #{createTime,jdbcType=BIGINT},
+	      </if> 
+	    </set>
+	    where CLUB_ID = #{clubId,jdbcType=INTEGER}
+  </update>
+	<select id="selectCreateName" resultType="java.lang.String" parameterType="java.lang.Integer">
+	    SELECT USER_NAME from GAME_USER WHERE USER_ID = #{userId}
+	</select>
+</mapper>

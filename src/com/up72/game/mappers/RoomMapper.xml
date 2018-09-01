@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.up72.game.dao.RoomMapper">
+
+<!-- 	<resultMap type="java.util.List" id="roomMap"> -->
+<!-- 		<result property="id" column="ID"/> -->
+<!-- 	</resultMap> -->
+    
+    <sql id="room_columns">
+        T.ID,T.NUMBER,T.USER_ID
+    </sql>
+    
+    <insert id="insert">
+        INSERT INTO GAME_ROOM(
+            CREATE_ID,ROOM_ID,CREATE_TIME,USER_ID1,USER_ID2,USER_ID3,USER_ID4,IS_PLAYING,MAX_SCORE,ROOM_TYPE,CIRCLE_NUM,MAX_NUM
+        )
+        VALUES (
+           #{createId},#{roomId},#{createTime},#{userId1},#{userId2},
+           #{userId3},#{userId4},#{isPlaying},#{maxScore},#{roomType},
+           #{circleNum},#{maxNum}
+        )
+    </insert>
+    
+    <update id="updateRoomState">
+        update GAME_ROOM set IS_PLAYING = 0 where ROOM_ID = #{roomId}
+    </update>
+    
+    <select id="getMyCreateRoom" resultType="java.util.Map">
+    	select 
+		r.ROOM_ID as roomId,
+		r.CREATE_TIME as createTime,
+		r.CIRCLE_NUM as circleNum,
+		r.MAX_SCORE as maxScore,
+		r.MAX_NUM as maxNum,
+		
+		(select USER_NAME from GAME_USER where USER_ID=r.USER_ID1) as openName1,
+		(select USER_IMG from GAME_USER where USER_ID=r.USER_ID1) as openImg1,
+		pr.EAST_USER_MONEY_REMAIN as score1,
+
+		(select USER_NAME from GAME_USER where USER_ID=r.USER_ID2) as openName2,
+		(select USER_IMG from GAME_USER where USER_ID=r.USER_ID2) as openImg2,
+		pr.SOUTH_USER_MONEY_REMAIN as score2,
+		
+		(select USER_NAME from GAME_USER where USER_ID=r.USER_ID3) as openName3,
+		(select USER_IMG from GAME_USER where USER_ID=r.USER_ID3) as openImg3,
+		pr.WEST_USER_MONEY_REMAIN as score3,
+		
+		(select USER_NAME from GAME_USER where USER_ID=r.USER_ID4) as openName4,
+		(select USER_IMG from GAME_USER where USER_ID=r.USER_ID4) as openImg4,
+		pr.NORTH_USER_MONEY_REMAIN as score4
+		
+		from GAME_ROOM r 
+		inner JOIN GAME_PLAY_RECORD pr on 
+		r.ROOM_ID = pr.ROOM_ID 
+		and r.CREATE_TIME = pr.START_TIME
+
+    	where CREATE_ID=#{userId} and ROOM_TYPE=#{roomType} ORDER BY CREATE_TIME desc
+    	limit #{start},#{limit}
+    </select>
+    
+    <select id="getMyCreateRoomTotal" resultType="java.lang.Integer">
+    	select count(1)
+		
+		from GAME_ROOM r 
+		inner JOIN GAME_PLAY_RECORD pr on 
+		r.ROOM_ID = pr.ROOM_ID 
+		and r.CREATE_TIME=pr.START_TIME
+    	where CREATE_ID=#{userId} and ROOM_TYPE=#{roomType} ORDER BY CREATE_TIME desc
+    	
+    </select>
+
+</mapper>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.up72.game.dao.PayMapper">
+	<!-- 查看用户是否绑定代理 -->
+	<select id="findDaiLByUserId" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+		SELECT dail_id FROM zc_dail_user WHERE user_id = #{userId}
+	</select>
+	<!-- 查看验证码是否有效 -->
+	
+	<select id="findDaiLByCode" parameterType="java.lang.Long" resultType="java.lang.Integer">
+		SELECT dail_id FROM zc_dail_info WHERE inviteCode = #{code}
+	</select>
+	<!-- 绑定代理 -->
+	<insert id="bindDaiL" parameterType="map">
+		INSERT INTO zc_dail_user(
+			dail_id,user_id,time,white
+		)
+		VALUES(
+			#{dail_id},#{user_id},#{time},#{white}
+		)
+	</insert>
+</mapper>

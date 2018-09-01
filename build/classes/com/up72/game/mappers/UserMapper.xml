@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.up72.game.dao.UserMapper">
+    <resultMap id="player" type="com.up72.game.dto.resp.Player">
+        <result property="id" column="ID" />
+        <result property="userId" column="USER_ID" />
+        <result property="openId" column="OPEN_ID" />
+        <result property="userName" column="USER_NAME" />
+        <result property="userImg" column="USER_IMG" />
+        <result property="gender" column="GENDER" />
+        <result property="money" column="MONEY" />
+        <result property="userAgree" column="USER_AGREE" />
+    </resultMap>
+
+    <sql id="info">
+        ID,USER_ID,OPEN_ID,USER_NAME,USER_IMG,GENDER,MONEY,USER_AGREE
+    </sql>
+
+
+    <insert id="insert">
+        INSERT INTO GAME_USER(
+            USER_ID,OPEN_ID,USER_NAME,USER_IMG,GENDER,
+            TOTAL_GAME_NUM,MONEY,USER_AGREE,LOGIN_STATUS,
+            SIGN_UP_TIME,LAST_LOGIN_TIME,CID
+        )
+        VALUES (
+           #{userId},#{openId},#{userName},#{userImg},#{gender},
+           #{totalGameNum},#{money},#{userAgree},#{loginStatus},
+           #{signUpTime},#{lastLoginTime},#{cid}
+        )
+    </insert>
+
+
+    <update id="update">
+        UPDATE GAME_USER SET
+        USER_ID = #{userId},
+        OPEN_ID = #{openId},
+        USER_NAME = #{userName},
+        USER_IMG = #{userImg},
+        GENDER = #{gender},
+        TOTAL_GAME_NUM = #{totalGameNum},
+        MONEY = #{money},
+        USER_AGREE = #{userAgree},
+        LOGIN_STATUS = #{loginStatus},
+        SIGN_UP_TIME = #{signUpTime},
+        LAST_LOGIN_TIME = #{lastLoginTime}
+        WHERE ID = #{id}
+    </update>
+
+    <update id="updateMoney">
+        update GAME_USER set MONEY=#{money} where USER_ID = #{userId}
+    </update>
+
+    <select id="findByOpenId" resultMap="player">
+        SELECT <include refid="info" /> FROM `GAME_USER` WHERE OPEN_ID = #{openId} and CID = #{cid}
+    </select>
+
+    <select id="isExistUserId" resultMap="player">
+        SELECT <include refid="info" /> FROM GAME_USER WHERE USER_ID = #{userId}
+    </select>
+
+
+    <select id="findPlayerRecordByUserId" resultType="com.up72.game.dto.resp.PlayerRecord">
+        SELECT
+        pr.ROOM_ID as roomId,
+        pr.START_TIME as startTime,
+        (select u.USER_NAME from `GAME_USER` u where u.USER_ID = pr.EAST_USER_ID) as eastUserName,
+        pr.EAST_USER_ID as eastUserId,
+        pr.EAST_USER_MONEY_RECORD as eastUserMoneyRecord,
+        pr.EAST_USER_MONEY_REMAIN as eastUserMoneyRemain,
+
+        (select u.USER_NAME from `GAME_USER` u where u.USER_ID = pr.SOUTH_USER_ID) as southUserName,
+        pr.SOUTH_USER_ID as southUserId,
+        pr.SOUTH_USER_MONEY_RECORD as southUserMoneyRecord,
+        pr.SOUTH_USER_MONEY_REMAIN as southUserMoneyRemain,
+
+        (select u.USER_NAME from `GAME_USER` u where u.USER_ID = pr.WEST_USER_ID) as westUserName,
+        pr.WEST_USER_ID as westUserId,
+        pr.WEST_USER_MONEY_RECORD as westUserMoneyRecord,
+        pr.WEST_USER_MONEY_REMAIN as westUserMoneyRemain,
+
+        (select u.USER_NAME from `GAME_USER` u where u.USER_ID = pr.NORTH_USER_ID) as northUserName,
+        pr.NORTH_USER_ID as northUserId,
+        pr.NORTH_USER_MONEY_RECORD as northUserMoneyRecord,
+        pr.NORTH_USER_MONEY_REMAIN as northUserMoneyRemain
+
+        from GAME_PLAY_RECORD pr
+        WHERE
+        pr.EAST_USER_ID =#{userId} OR
+        pr.SOUTH_USER_ID = #{userId} OR
+        pr.WEST_USER_ID = #{userId} OR
+        pr.NORTH_USER_ID = #{userId}
+        ORDER BY pr.START_TIME DESC
+        limit #{start},#{limit}
+    </select>
+
+
+    <insert id="userFeedback">
+        INSERT INTO GAME_FEEDBACK(USER_ID,CONTENT,TEL,CREATE_TIME)
+        VALUES (#{userId},#{content},#{tel},#{createTime})
+    </insert>
+
+
+    <update id="updateUserAgree">
+        update `GAME_USER` set USER_AGREE = 1 WHERE  USER_ID=#{userId}
+    </update>
+
+    <select id="getNotice" resultType="java.lang.String">
+        select CONTENT from  GAME_NOTICE where TYPE = 1
+    </select>
+
+    <select id="getSystemMessage" resultType="com.up72.game.model.SystemMessage">
+        select
+        CREATE_TIME as createTime,
+        CONTENT as content,
+        USER_ID as userId
+        from GAME_SYSTEM_MESSAGE
+        limit #{start},#{limit}
+    </select>
+    
+    <select id="getConectUs" resultType="java.lang.String">
+        select CONTENT_US
+        from GAME_SYSTEM_MESSAGE where STATE = 1
+    </select>
+
+    <insert id="insertPlayRecord">
+        insert into GAME_PLAY_RECORD(
+        ROOM_ID,START_TIME,END_TIME,
+        EAST_USER_ID,EAST_USER_MONEY_RECORD,EAST_USER_MONEY_REMAIN,
+        SOUTH_USER_ID,SOUTH_USER_MONEY_RECORD,SOUTH_USER_MONEY_REMAIN,
+        WEST_USER_ID,WEST_USER_MONEY_RECORD,WEST_USER_MONEY_REMAIN,
+        NORTH_USER_ID,NORTH_USER_MONEY_RECORD,NORTH_USER_MONEY_REMAIN
+        )
+        values(
+        #{roomId},
+        #{startTime},
+        #{endTime},
+
+        #{eastUserId},
+        #{eastUserMoneyRecord},
+        #{eastUserMoneyRemain},
+
+        #{southUserId},
+        #{southUserMoneyRecord},
+        #{southUserMoneyRemain},
+
+        #{westUserId},
+        #{westUserMoneyRecord},
+        #{westUserMoneyRemain},
+
+        #{northUserId},
+        #{northUserMoneyRecord},
+        #{northUserMoneyRemain}
+
+        )
+
+    </insert>
+    
+    <insert id="insertPlayerMoneyRecord">
+    	insert into gm_player_consumerecord(uId,money,type,createTime)
+    	values(#{userId},#{money},#{type},#{createTime})
+    </insert>
+    
+    <select id="getUserMoneyByUserId" resultType="java.lang.Integer">
+    	select MONEY from GAME_USER where USER_ID=#{userId} 
+    </select>
+
+</mapper>

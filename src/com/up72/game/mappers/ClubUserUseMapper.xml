@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.up72.game.dao.ClubUserUseMapper">
+
+	<resultMap id="BaseResultMap" type="com.up72.game.dto.resp.ClubUserUse" >
+	  <id column="ID" property="id" jdbcType="INTEGER" />
+	  <result column="USER_ID" property="userId" jdbcType="INTEGER" />
+	  <result column="CLUB_ID" property="clubId" jdbcType="INTEGER" />
+	  <result column="ROOM_ID" property="roomId" jdbcType="INTEGER" />
+	  <result column="MONEY" property="money" jdbcType="INTEGER" />
+	  <result column="CREATE_TIME" property="createTime" jdbcType="BIGINT" />
+	  <!-- 不属于表字段的 -->
+	  
+	</resultMap>
+	
+	<insert id="insert" parameterType="com.up72.game.dto.resp.ClubUserUse">
+        INSERT INTO CLUB_USER_USE(
+            USER_ID,CLUB_ID,ROOM_ID,MONEY,CREATE_TIME  
+        )
+        VALUES (
+           #{userId},#{clubId},#{roomId},#{money},#{createTime} 
+        )
+    </insert>
+    
+    <select id="sumMoneyByClubIdAndDate" resultType="java.lang.Integer" parameterType="map">
+    
+	   SELECT SUM(MONEY) from CLUB_USER_USE  where  
+	   	 FROM_UNIXTIME( CREATE_TIME/1000, '%Y-%m-%d' ) =  DATE_FORMAT(#{createTime},'%Y-%m-%d') and CLUB_ID = #{clubId}
+	</select>
+	
+	<select id="countJuNumByClubIdAndDate" resultType="java.lang.Integer" parameterType="map">
+    
+	   SELECT COUNT(ID) from CLUB_GAME_ROOM  where  
+	   	 FROM_UNIXTIME( CREATE_TIME/1000, '%Y-%m-%d' ) =  DATE_FORMAT(#{createTime},'%Y-%m-%d') and CLUB_ID = #{clubId}
+	</select>
+	
+	<select id="todayUse" parameterType="map" resultType="java.lang.Integer">
+		SELECT sum(oneMoney) from CLUB_GAME_ROOM where 
+		(USER_ID1=#{userId} or USER_ID2=#{userId} or USER_ID3=#{userId} or USER_ID4=#{userId})
+		 and CREATE_TIME&gt;=#{morning} and CREATE_TIME&lt;#{night}  and CLUB_ID=#{clubId}
+	</select>
+</mapper>

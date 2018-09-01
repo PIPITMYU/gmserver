@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.up72.game.dao.ClubGamePlayRecordMapper">
+     
+    <insert id="insertPlayRecord">
+        insert into CLUB_GAME_PLAY_RECORD(
+        ROOM_ID,START_TIME,END_TIME,
+        EAST_USER_ID,EAST_USER_MONEY_RECORD,EAST_USER_MONEY_REMAIN,
+        SOUTH_USER_ID,SOUTH_USER_MONEY_RECORD,SOUTH_USER_MONEY_REMAIN,
+        WEST_USER_ID,WEST_USER_MONEY_RECORD,WEST_USER_MONEY_REMAIN,
+        NORTH_USER_ID,NORTH_USER_MONEY_RECORD,NORTH_USER_MONEY_REMAIN,CLUB_ID
+        )
+        values(
+        #{roomId},
+        #{startTime},
+        #{endTime},
+
+        #{eastUserId},
+        #{eastUserMoneyRecord},
+        #{eastUserMoneyRemain},
+
+        #{southUserId},
+        #{southUserMoneyRecord},
+        #{southUserMoneyRemain},
+
+        #{westUserId},
+        #{westUserMoneyRecord},
+        #{westUserMoneyRemain},
+
+        #{northUserId},
+        #{northUserMoneyRecord},
+        #{northUserMoneyRemain},
+        
+        #{clubId}
+
+        )
+
+    </insert>
+    
+    <select id="countActNumByClubIdAndDate" resultType="java.lang.Integer" parameterType="map">
+    
+	 SELECT 
+ 		COUNT( DISTINCT cu.USER_ID ) num
+	 FROM  CLUB_USER cu, CLUB_GAME_PLAY_RECORD cpr where
+		(cu.USER_ID = cpr.NORTH_USER_ID or cu.USER_ID = cpr.EAST_USER_ID 
+		or cu.USER_ID = cpr.SOUTH_USER_ID  or cu.USER_ID = cpr.WEST_USER_ID) 
+		and cpr.CLUB_ID = #{clubId}  and FROM_UNIXTIME(  cpr.START_TIME/1000, '%Y-%m-%d' ) = DATE_FORMAT(#{createTime},'%Y-%m-%d')
+	</select>
+	
+	<!-- <select id="countJuNumByClubIdAndDateAndUserId" resultType="java.lang.Integer" parameterType="map">
+    
+	 SELECT 
+ 		COUNT(cu.ID) num
+	 FROM  CLUB_USER cu, CLUB_GAME_PLAY_RECORD cpr where
+		(cu.USER_ID = cpr.NORTH_USER_ID or cu.USER_ID = cpr.EAST_USER_ID 
+		or cu.USER_ID = cpr.SOUTH_USER_ID  or cu.USER_ID = cpr.WEST_USER_ID) 
+		and cpr.CLUB_ID = #{clubId}  and FROM_UNIXTIME(  cpr.START_TIME/1000, '%Y-%m-%d' ) = DATE_FORMAT(#{createTime},'%Y-%m-%d')
+		and cu.USER_ID = #{userId}
+	</select> -->
+	<select id="countJuNumByClubIdAndDateAndUserId" resultType="java.lang.Integer" parameterType="map">
+    
+	 SELECT 
+ 		COUNT(ID) num
+	 FROM  CLUB_GAME_PLAY_RECORD where
+		(NORTH_USER_ID = #{userId} or EAST_USER_ID = #{userId} 
+		or SOUTH_USER_ID = #{userId}  or WEST_USER_ID = #{userId} ) 
+		and FROM_UNIXTIME(  START_TIME/1000, '%Y-%m-%d' ) = DATE_FORMAT(#{createTime},'%Y-%m-%d') and CLUB_ID = #{clubId}
+		
+	</select>
+	<select id="findPlayerRecordByUserId" resultType="com.up72.game.dto.resp.PlayerRecord">
+        SELECT
+        pr.ROOM_ID as roomId,
+        pr.START_TIME as startTime,
+        (select u.USER_NAME from `GAME_USER` u where u.USER_ID = pr.EAST_USER_ID) as eastUserName,
+        pr.EAST_USER_ID as eastUserId,
+        pr.EAST_USER_MONEY_RECORD as eastUserMoneyRecord,
+        pr.EAST_USER_MONEY_REMAIN as eastUserMoneyRemain,
+
+        (select u.USER_NAME from `GAME_USER` u where u.USER_ID = pr.SOUTH_USER_ID) as southUserName,
+        pr.SOUTH_USER_ID as southUserId,
+        pr.SOUTH_USER_MONEY_RECORD as southUserMoneyRecord,
+        pr.SOUTH_USER_MONEY_REMAIN as southUserMoneyRemain,
+
+        (select u.USER_NAME from `GAME_USER` u where u.USER_ID = pr.WEST_USER_ID) as westUserName,
+        pr.WEST_USER_ID as westUserId,
+        pr.WEST_USER_MONEY_RECORD as westUserMoneyRecord,
+        pr.WEST_USER_MONEY_REMAIN as westUserMoneyRemain,
+
+        (select u.USER_NAME from `GAME_USER` u where u.USER_ID = pr.NORTH_USER_ID) as northUserName,
+        pr.NORTH_USER_ID as northUserId,
+        pr.NORTH_USER_MONEY_RECORD as northUserMoneyRecord,
+        pr.NORTH_USER_MONEY_REMAIN as northUserMoneyRemain
+
+        from CLUB_GAME_PLAY_RECORD pr
+        WHERE
+	        (pr.EAST_USER_ID = #{userId} OR
+	        pr.SOUTH_USER_ID = #{userId} OR
+	        pr.WEST_USER_ID = #{userId} OR
+	        pr.NORTH_USER_ID = #{userId}) and pr.CLUB_ID = #{clubId}
+	        and  pr.START_TIME  &gt;=  #{startTime} 
+			and  pr.START_TIME  &lt;=  #{endTime}
+        ORDER BY pr.START_TIME DESC
+        limit #{start},#{limit}
+    </select>
+    
+    <select id="findScoreByUserIdAndClubId" resultType="java.lang.Integer">
+	   	select sum(b.a) from (
+			select sum(EAST_USER_MONEY_RECORD) as a from CLUB_GAME_PLAY_RECORD where EAST_USER_ID= #{userId} and CLUB_ID = #{clubId} and START_TIME &lt;= #{night} AND  START_TIME &gt;= #{morning} 
+			union all
+			select sum(SOUTH_USER_MONEY_RECORD) as a from CLUB_GAME_PLAY_RECORD where SOUTH_USER_ID= #{userId} and CLUB_ID = #{clubId} and START_TIME &lt;= #{night} AND  START_TIME &gt;= #{morning} 
+			union all
+			select sum(WEST_USER_MONEY_RECORD) as a from CLUB_GAME_PLAY_RECORD where WEST_USER_ID= #{userId} and CLUB_ID = #{clubId} and START_TIME &lt;= #{night} AND  START_TIME &gt;= #{morning} 
+			union all
+			select sum(NORTH_USER_MONEY_RECORD) as a from CLUB_GAME_PLAY_RECORD where NORTH_USER_ID= #{userId} and CLUB_ID = #{clubId} and START_TIME &lt;= #{night} AND  START_TIME &gt;= #{morning} 
+		
+		) b 
+    </select>
+	
+</mapper>
